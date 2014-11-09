@@ -59,3 +59,15 @@ optional arguments:
   -d, --debug           Print metrics, don't send to graphite
   -v, --verbose         Verbose output
 ```
+
+
+### Usage
+
+Install first, 
+
+https://github.com/zouzias/grafana-vagrant-puppet-box/
+
+Then type,
+
+python es2graphite.py localhost:9200
+
