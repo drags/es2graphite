@@ -48,7 +48,7 @@ def add_metric(metrics, prefix, stat, val, timestamp):
         metrics.append((normalize((prefix, stat)), (timestamp, STATUS[val])))
     elif stat == 'state' and val in SHARD_STATE:
         metrics.append((normalize((prefix, stat)), (timestamp, SHARD_STATE[val])))
-        
+
 def process_node_stats(prefix, stats):
     metrics = []
     global CLUSTER_NAME
@@ -68,18 +68,18 @@ def process_indices_status(prefix, status):
     metrics = []
     process_section(int(time.time()), metrics, (prefix, CLUSTER_NAME, 'indices'), status['indices'])
     return metrics
-    
+
 def process_indices_stats(prefix, stats):
     metrics = []
     process_section(int(time.time()), metrics, (prefix, CLUSTER_NAME, 'indices', '_all'), stats['_all'])
     process_section(int(time.time()), metrics, (prefix, CLUSTER_NAME, 'indices'), stats['indices'])
     return metrics
-    
+
 def process_segments_status(prefix, status):
     metrics = []
     process_section(int(time.time()), metrics, (prefix, CLUSTER_NAME, 'indices'), status['indices'])
     return metrics
-    
+
 def process_section(timestamp, metrics, prefix, section):
     for stat in section:
         stat_val = section[stat]
@@ -121,7 +121,7 @@ def send_to_graphite(metrics):
         sock.connect((args.graphite_host, args.graphite_port))
         sock.sendall('%s%s' % (header, payload))
         sock.close()
- 
+
 def get_metrics():
     dt = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     node_stats_url = 'http://%s/_nodes/stats?all=true' % get_es_host()
@@ -130,7 +130,7 @@ def get_metrics():
     node_stats = json.loads(node_stats_data)
     node_stats_metrics = process_node_stats(args.prefix, node_stats)
     send_to_graphite(node_stats_metrics)
- 
+
     cluster_health_url = 'http://%s/_cluster/health?level=%s' % (get_es_host(), args.health_level)
     log('%s: GET %s' % (dt, cluster_health_url))
     cluster_health_data = urllib2.urlopen(cluster_health_url).read()
@@ -153,7 +153,7 @@ def get_metrics():
     indices_stats = json.loads(indices_stats_data)
     indices_stats_metrics = process_indices_stats(args.prefix, indices_stats)
     send_to_graphite(indices_stats_metrics)
-   
+
     if args.segments:
         segments_status_url = 'http://%s/_segments' % get_es_host()
         log('%s: GET %s' % (dt, segments_status_url))
