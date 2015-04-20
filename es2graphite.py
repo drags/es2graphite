@@ -19,14 +19,17 @@ STATUS = {'red': 0, 'yellow': 1, 'green': 2}
 SHARD_STATE = {'CREATED': 0, 'RECOVERING': 1, 'STARTED': 2, 'RELOCATED': 3, 'CLOSED': 4}
 HOST_IDX = -1
 
+
 def log(what, force=False):
     if args.verbose or force:
         pprint(what)
 
+
 def get_es_host():
     global HOST_IDX
-    HOST_IDX = (HOST_IDX + 1) % len(args.es) # round-robin
+    HOST_IDX = (HOST_IDX + 1) % len(args.es)  # round-robin
     return args.es[HOST_IDX]
+
 
 def normalize(what):
     if not isinstance(what, (list, tuple)):
@@ -35,6 +38,7 @@ def normalize(what):
         return normalize(what[0])
     else:
         return '%s.%s' % (normalize(what[0]), normalize(what[1:]))
+
 
 def add_metric(metrics, prefix, stat, val, timestamp):
     if isinstance(val, bool):
@@ -49,6 +53,7 @@ def add_metric(metrics, prefix, stat, val, timestamp):
     elif stat == 'state' and val in SHARD_STATE:
         metrics.append((normalize((prefix, stat)), (timestamp, SHARD_STATE[val])))
 
+
 def process_node_stats(prefix, stats):
     metrics = []
     global CLUSTER_NAME
@@ -59,15 +64,18 @@ def process_node_stats(prefix, stats):
         process_section(int(time.time()), metrics, (prefix, CLUSTER_NAME, NODES[node_id]), node_stats)
     return metrics
 
+
 def process_cluster_health(prefix, health):
     metrics = []
     process_section(int(time.time()), metrics, (prefix, CLUSTER_NAME), health)
     return metrics
 
+
 def process_indices_status(prefix, status):
     metrics = []
     process_section(int(time.time()), metrics, (prefix, CLUSTER_NAME, 'indices'), status['indices'])
     return metrics
+
 
 def process_indices_stats(prefix, stats):
     metrics = []
@@ -75,16 +83,18 @@ def process_indices_stats(prefix, stats):
     process_section(int(time.time()), metrics, (prefix, CLUSTER_NAME, 'indices'), stats['indices'])
     return metrics
 
+
 def process_segments_status(prefix, status):
     metrics = []
     process_section(int(time.time()), metrics, (prefix, CLUSTER_NAME, 'indices'), status['indices'])
     return metrics
 
+
 def process_section(timestamp, metrics, prefix, section):
     for stat in section:
         stat_val = section[stat]
         if 'timestamp' in section:
-            timestamp = int(section['timestamp'] / 1000) # es has epoch in ms, graphite needs seconds
+            timestamp = int(section['timestamp'] / 1000)  # es has epoch in ms, graphite needs seconds
 
         if isinstance(stat_val, dict):
             process_section(timestamp, metrics, (prefix, stat), stat_val)
