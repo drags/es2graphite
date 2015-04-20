@@ -1,11 +1,8 @@
 #!/usr/bin/env python
 
 import re
-import sys
 import json
 import time
-import pickle
-import struct
 import socket
 import thread
 import urllib2
@@ -120,17 +117,18 @@ def process_section(timestamp, metrics, prefix, section):
         else:
             add_metric(metrics, prefix, stat, stat_val, timestamp)
 
+
 def send_to_graphite(metrics):
     if args.debug:
-        for m, mval  in metrics:
+        for m, mval in metrics:
             log('%s %s = %s' % (mval[0], m, mval[1]), True)
     else:
-        payload = pickle.dumps(metrics)
-        header = struct.pack('!L', len(payload))
+        metrics_msg = ''.join(["%s %s %s\n" % (m, mval[1], mval[0]) for m, mval in metrics])
         sock = socket.socket()
         sock.connect((args.graphite_host, args.graphite_port))
-        sock.sendall('%s%s' % (header, payload))
+        sock.sendall(metrics_msg)
         sock.close()
+
 
 def get_metrics():
     dt = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
@@ -176,7 +174,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Send elasticsearch metrics to graphite')
     parser.add_argument('-p', '--prefix', default='es', help='graphite metric prefix. Default: %(default)s')
     parser.add_argument('-g', '--graphite-host', default='localhost', help='graphite hostname. Default: %(default)s')
-    parser.add_argument('-o', '--graphite-port', default=2004, type=int, help='graphite pickle protocol port. Default: %(default)s')
+    parser.add_argument('-o', '--graphite-port', default=2003, type=int, help='graphite plaintext protocol port. Default: %(default)s')
     parser.add_argument('-i', '--interval', default=60, type=int, help='interval in seconds. Default: %(default)s')
     parser.add_argument('--health-level', choices=['cluster', 'indices', 'shards'], default='indices', help='The level of health metrics. Default: %(default)s')
     parser.add_argument('--shard-stats', action='store_true', help='Collect shard level stats metrics.')
